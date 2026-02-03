@@ -92,6 +92,7 @@ with tab1:
     with col2_up:
         cal_scan_file = st.file_uploader("실제 스캔 데이터 (Scan)", type=["stl", "obj"], key="cal_scan")
         
+    # 분석 버튼
     if cal_cad_file and cal_scan_file:
         if st.button("🔍 분석 및 상수 추출", key="btn_cal"):
             with st.spinner("형상 분석 및 보정 상수 계산 중..."):
@@ -108,88 +109,108 @@ with tab1:
                 scan_extents = scan_mesh.extents
                 scale_factors = cad_extents / scan_extents
                 
-                st.session_state['calibration_constants'] = scale_factors
-                
-                st.success("✅ 보정 상수 추출 완료!")
-                
-                # 결과 표시
-                col_res1, col_res2, col_res3 = st.columns(3)
-                col_res1.metric("X축 보정 상수", f"{scale_factors[0]:.4f}", f"{(scale_factors[0]-1)*100:.2f}%")
-                col_res2.metric("Y축 보정 상수", f"{scale_factors[1]:.4f}", f"{(scale_factors[1]-1)*100:.2f}%")
-                col_res3.metric("Z축 보정 상수", f"{scale_factors[2]:.4f}", f"{(scale_factors[2]-1)*100:.2f}%")
-                
-                # --- 상세 오차 분석 및 스무딩 로직 ---
-                st.divider()
-                st.subheader("상세 오차 분석 및 보정 맵 생성")
-                
-                # 1. Raw Distance 계산
+                # 3. Raw Distance 계산
                 closest_points, distances, _ = scan_mesh.nearest.on_surface(cad_mesh.vertices)
                 diff_vectors = closest_points - cad_mesh.vertices # Raw Displacement
                 
-                # Signed Distance for Visualization
-                signed_distances = np.sum(diff_vectors * cad_mesh.vertex_normals, axis=1)
+                # 결과 Session State에 저장
+                st.session_state['calibration_constants'] = scale_factors
+                st.session_state['cal_results'] = {
+                    'vertices': cad_mesh.vertices,
+                    'faces': cad_mesh.faces,
+                    'normals': cad_mesh.vertex_normals,
+                    'diff_vectors': diff_vectors,
+                    'scale_factors': scale_factors
+                }
                 
-                # 2. 가우시안 스무딩 옵션
-                use_smoothing = st.checkbox("가우시안 스무딩 적용 (노이즈/튀는 값 제거)", value=True)
-                sigma_val = 1.0
-                if use_smoothing:
-                    sigma_val = st.slider("Smoothing Sigma (영향 반경 조절)", 0.1, 5.0, 1.0, 0.1, help="값이 클수록 더 넓은 영역을 평균화하여 부드럽게 만듭니다.")
-                    with st.spinner(f"벡터 필드 스무딩 중... (Sigma={sigma_val})"):
-                        final_diff_vectors = gaussian_smooth_vectors(cad_mesh.vertices, diff_vectors, sigma=sigma_val)
-                else:
-                    final_diff_vectors = diff_vectors
+                st.success("✅ 분석 완료! 아래에서 옵션을 조정하세요.")
 
-                # 3. 시각화 (Signed Distance)
-                # 샘플링
-                sample_indices = np.random.choice(len(cad_mesh.vertices), min(5000, len(cad_mesh.vertices)), replace=False)
-                sample_vertices = cad_mesh.vertices[sample_indices]
-                
-                # 시각화용 데이터 추출 (스무딩 적용 여부에 따라 다름)
-                viz_diff = final_diff_vectors[sample_indices]
-                viz_signed_dist = np.sum(viz_diff * cad_mesh.vertex_normals[sample_indices], axis=1)
-                
-                max_abs_dist = np.max(np.abs(viz_signed_dist))
-                if max_abs_dist == 0: max_abs_dist = 0.1
-                
-                custom_colorscale = [[0.0, "blue"], [0.5, "green"], [1.0, "red"]]
-                
-                fig = go.Figure(data=[
-                    go.Scatter3d(
-                        x=sample_vertices[:,0], y=sample_vertices[:,1], z=sample_vertices[:,2],
-                        mode='markers',
-                        marker=dict(
-                            size=2, 
-                            color=viz_signed_dist, 
-                            colorscale=custom_colorscale,
-                            cmin=-max_abs_dist, cmax=max_abs_dist,
-                            colorbar=dict(title="오차 (mm)"), showscale=True
-                        ),
-                        name='오차 분포'
-                    )
-                ])
-                fig.update_layout(scene=dict(aspectmode='data'), title=f"오차 분포 (Smoothing: {'ON' if use_smoothing else 'OFF'})")
-                st.plotly_chart(fig, use_container_width=True)
+    # 분석 결과가 있으면 표시 (슬라이더 조작 시에도 유지됨)
+    if 'cal_results' in st.session_state and st.session_state['cal_results'] is not None:
+        res = st.session_state['cal_results']
+        scale_factors = res['scale_factors']
+        
+        # 결과 표시
+        col_res1, col_res2, col_res3 = st.columns(3)
+        col_res1.metric("X축 보정 상수", f"{scale_factors[0]:.4f}", f"{(scale_factors[0]-1)*100:.2f}%")
+        col_res2.metric("Y축 보정 상수", f"{scale_factors[1]:.4f}", f"{(scale_factors[1]-1)*100:.2f}%")
+        col_res3.metric("Z축 보정 상수", f"{scale_factors[2]:.4f}", f"{(scale_factors[2]-1)*100:.2f}%")
+        
+        st.info("이 상수는 '검증 및 보정 설계' 탭에서 자동으로 사용됩니다.")
+        
+        # --- 상세 오차 분석 및 스무딩 로직 ---
+        st.divider()
+        st.subheader("상세 오차 분석 및 보정 맵 생성")
+        
+        # 저장된 데이터 불러오기
+        vertices = res['vertices']
+        normals = res['normals']
+        diff_vectors = res['diff_vectors']
+        faces = res['faces']
 
-                # 4. 보정된 모델 생성 및 다운로드
-                alpha = st.slider("보정 계수 (Alpha)", 0.5, 1.5, 1.0, 0.1)
-                
-                # 보정: CAD - (Error Vector * Alpha)
-                compensated_vertices = cad_mesh.vertices - (final_diff_vectors * alpha)
-                compensated_mesh = trimesh.Trimesh(vertices=compensated_vertices, faces=cad_mesh.faces)
-                
-                tmp_export = tempfile.NamedTemporaryFile(delete=False, suffix=".stl")
-                compensated_mesh.export(tmp_export.name)
-                
-                with open(tmp_export.name, "rb") as f:
-                    st.download_button("📥 보정된 STL 파일 다운로드", f, "compensated_model.stl", "model/stl")
+        # 2. 가우시안 스무딩 옵션
+        use_smoothing = st.checkbox("가우시안 스무딩 적용 (노이즈/튀는 값 제거)", value=True)
+        sigma_val = 1.0
+        
+        final_diff_vectors = diff_vectors # 기본값
+        
+        if use_smoothing:
+            sigma_val = st.slider("Smoothing Sigma (영향 반경 조절)", 0.1, 5.0, 1.0, 0.1, help="값이 클수록 더 넓은 영역을 평균화하여 부드럽게 만듭니다.")
+            # 스무딩 연산은 무거울 수 있으므로 캐싱하면 좋지만, 파라미터가 바뀌므로 매번 계산
+            # (최적화를 위해선 hash_func 등을 써야하지만 여기선 단순 구현)
+            with st.spinner(f"벡터 필드 스무딩 중... (Sigma={sigma_val})"):
+                final_diff_vectors = gaussian_smooth_vectors(vertices, diff_vectors, sigma=sigma_val)
+        
+        # 3. 시각화 (Signed Distance)
+        # 샘플링 (매번 랜덤하면 깜빡이므로 시드 고정하거나 데이터 저장 시 샘플링도 저장하면 좋음. 여기선 단순화)
+        sample_indices = np.linspace(0, len(vertices)-1, num=min(5000, len(vertices)), dtype=int)
+        sample_vertices = vertices[sample_indices]
+        
+        viz_diff = final_diff_vectors[sample_indices]
+        viz_signed_dist = np.sum(viz_diff * normals[sample_indices], axis=1)
+        
+        max_abs_dist = np.max(np.abs(viz_signed_dist))
+        if max_abs_dist == 0: max_abs_dist = 0.1
+        
+        custom_colorscale = [[0.0, "blue"], [0.5, "green"], [1.0, "red"]]
+        
+        fig = go.Figure(data=[
+            go.Scatter3d(
+                x=sample_vertices[:,0], y=sample_vertices[:,1], z=sample_vertices[:,2],
+                mode='markers',
+                marker=dict(
+                    size=2, 
+                    color=viz_signed_dist, 
+                    colorscale=custom_colorscale,
+                    cmin=-max_abs_dist, cmax=max_abs_dist,
+                    colorbar=dict(title="오차 (mm)"), showscale=True
+                ),
+                name='오차 분포'
+            )
+        ])
+        fig.update_layout(scene=dict(aspectmode='data'), title=f"오차 분포 (Smoothing: {'ON' if use_smoothing else 'OFF'})")
+        st.plotly_chart(fig, use_container_width=True)
 
-                # 5. CSV 다운로드
-                df_calib = pd.DataFrame(final_diff_vectors, columns=["Diff_X", "Diff_Y", "Diff_Z"])
-                df_calib["Calib_X"] = -final_diff_vectors[:,0]
-                df_calib["Calib_Y"] = -final_diff_vectors[:,1]
-                df_calib["Calib_Z"] = -final_diff_vectors[:,2]
-                csv = df_calib.to_csv(index=False).encode('utf-8')
-                st.download_button("📊 보정 데이터 (CSV) 다운로드", csv, "calibration_data.csv", "text/csv")
+        # 4. 보정된 모델 생성 및 다운로드
+        alpha = st.slider("보정 계수 (Alpha)", 0.5, 1.5, 1.0, 0.1)
+        
+        # 보정: CAD - (Error Vector * Alpha)
+        compensated_vertices = vertices - (final_diff_vectors * alpha)
+        compensated_mesh = trimesh.Trimesh(vertices=compensated_vertices, faces=faces)
+        
+        tmp_export = tempfile.NamedTemporaryFile(delete=False, suffix=".stl")
+        compensated_mesh.export(tmp_export.name)
+        
+        with open(tmp_export.name, "rb") as f:
+            st.download_button("📥 보정된 STL 파일 다운로드", f, "compensated_model.stl", "model/stl")
+
+        # 5. CSV 다운로드
+        df_calib = pd.DataFrame(final_diff_vectors, columns=["Diff_X", "Diff_Y", "Diff_Z"])
+        df_calib["Calib_X"] = -final_diff_vectors[:,0]
+        df_calib["Calib_Y"] = -final_diff_vectors[:,1]
+        df_calib["Calib_Z"] = -final_diff_vectors[:,2]
+        csv = df_calib.to_csv(index=False).encode('utf-8')
+        st.download_button("📊 보정 데이터 (CSV) 다운로드", csv, "calibration_data.csv", "text/csv")
 
 # --- 탭 2: 검증 및 보정 ---
 with tab2:
