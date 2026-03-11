@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Presentation | Inverse Vector Field Synthesis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --academic-navy: #002C5F;
+            --academic-gold: #B8860B;
+            --text-main: #1A1A1A;
+            --text-sub: #4A4A4A;
+            --bg: #FFFFFF;
+            --code-bg: #F4F4F4;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #E5E5E5;
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .slide {
+            width: 1000px;
+            min-height: 750px;
+            margin: 40px auto;
+            background: var(--bg);
+            padding: 60px 80px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .slide::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 5px;
+            background: var(--academic-navy);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+        }
+        .page-num { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--academic-gold); }
+        
+        h1 { font-family: 'Crimson Pro', serif; font-size: 2.8rem; margin: 0; color: var(--academic-navy); line-height: 1.1; }
+        h2 { font-size: 1.8rem; border-bottom: 2px solid #EEE; padding-bottom: 10px; margin-bottom: 25px; color: var(--academic-navy); }
+        h3 { font-size: 1.3rem; margin-top: 25px; color: var(--academic-gold); text-transform: uppercase; letter-spacing: 1px; }
+
+        p, li { font-size: 1.05rem; text-align: justify; color: var(--text-sub); }
+        .abstract { font-style: italic; border-left: 4px solid #DDD; padding-left: 20px; margin: 20px 0; }
+        
+        .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        
+        .formula-box {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            text-align: center;
+            margin: 20px 0;
+            border: 1px solid #DDD;
+        }
+        
+        .info-card {
+            background: #F9F9F9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        .highlight-text { color: var(--academic-navy); font-weight: 600; }
+
+        footer {
+            margin-top: auto;
+            font-size: 0.8rem;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #EEE;
+            padding-top: 15px;
+        }
+
+        @media print {
+            body { background: none; }
+            .slide { margin: 0; box-shadow: none; page-break-after: always; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SLIDE 1: TITLE PAGE -->
+    <div class="slide">
+        <div class="header">
+            <span class="page-num">ACADEMIC SESSION 2026</span>
+        </div>
+        <div style="margin-top: 60px;">
+            <p class="tag" style="color:var(--academic-gold); font-weight:700;">Computational Geometry & Additive Manufacturing</p>
+            <h1>Data-Driven Inverse Vector Field Synthesis for Geometric Deviation Compensation in AM</h1>
+            <div class="abstract">
+                본 연구는 적층 제조(Additive Manufacturing) 공정에서 발생하는 비선형 기하학적 왜곡을 상쇄하기 위해, 실측 계측 데이터 기반의 역벡터장 합성(IVFS) 알고리즘을 제안합니다. FEA 기반 물리 시뮬레이션의 계산 복잡성과 환경 변수 누락 문제를 해결하기 위한 수치적 접근법을 다룹니다.
+            </div>
+        </div>
+        <footer>
+            <span>Department of Advanced Manufacturing Engineering</span>
+            <span>R&D Project: AI-REVERSE-2026</span>
+        </footer>
+    </div>
+
+    <!-- SLIDE 2: PROBLEM DEFINITION (FEA LIMITATIONS) -->
+    <div class="slide">
+        <div class="header"><span class="page-num">SECTION 01</span></div>
+        <h2>Introduction & Problem Definition</h2>
+        <div class="columns">
+            <div>
+                <h3>Theoretical Limitations of FEA</h3>
+                <p>
+                    전통적인 유한요소해석(FEA)은 선형 탄성/소성 모델에 기반합니다. 하지만 적층 공정은 <strong>열 이력(Thermal History)에 의한 상변화</strong>, <strong>잔류 응력의 누적</strong>, <strong>장비 고유의 기하학적 오차</strong> 등 전산 모델링이 극도로 어려운 비결정론적 변수를 포함합니다.
+                </p>
+                <p>
+                    이로 인해 물리 방정식 기반의 화이트박스(White-box) 모델은 실제 출력물과 **평균 15~25%의 오차**를 보이며, 보정 정밀도의 한계를 나타냅니다.
+                </p>
+            </div>
+            <div>
+                <div class="info-card">
+                    <span class="highlight-text">핵심 과제 (The Challenge):</span><br>
+                    "이론적 예측 모델의 불확실성을 어떻게 계측 데이터(Ground Truth)를 통해 통계적으로 유의미하게 상쇄할 것인가?"
+                </div>
+                <ul style="font-size:0.9rem; margin-top:20px;">
+                    <li>기하학적 위상 수학 유지 (Topology Preservation)</li>
+                    <li>고밀도 계측 데이터의 효율적 처리 (Efficiency)</li>
+                    <li>계측 노이즈와 실제 변형의 구분 (Signal Separation)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: ALGORITHM OVERVIEW (IVFS) -->
+    <div class="slide">
+        <div class="header"><span class="page-num">SECTION 02</span></div>
+        <h2>Methodology: Inverse Vector Field Synthesis</h2>
+        <p>본 연구의 핵심은 CAD 표면의 매니폴드(Manifold) 상에서 정의된 역보정 벡터장 $\mathcal{V}_{comp}$를 합성하는 것입니다.</p>
+        
+        <div class="formula-box">
+            V<sub>comp</sub> = V<sub>cad</sub> - α ⋅ Φ( &vec;E(V<sub>cad</sub>) )
+        </div>
+        
+        <div class="columns">
+            <div class="tech-box">
+                <h3>Numerical Registration</h3>
+                <p>
+                    CAD 정점 집합 $\mathcal{S}_{cad}$와 스캔 포인트 클라우드 $\mathcal{S}_{scan}$ 간의 **공간적 상관관계**를 정의합니다. 무게중심 일치 및 주축 정렬을 선행한 후, 국부적 변형 벡터 $\vec{e}$를 추출합니다.
+                </p>
+            </div>
+            <div class="tech-box">
+                <h3>Function Φ: Gaussian Smoothing</h3>
+                <p>
+                    $\Phi$는 가우시안 커널을 이용한 공간 필터링 함수입니다. 계측 데이터의 불규칙한 고주파 노이즈($f > \lambda$)를 차단하고, 실제 물리적 변형에 해당하는 저주파 경향성만을 추출하여 모델의 **C1 연속성**을 확보합니다.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: THE DENSITY BRIDGE (SUBDIVISION) -->
+    <div class="slide">
+        <div class="header"><span class="page-num">SECTION 03</span></div>
+        <h2>Bridging the Density Gap: Adaptive Subdivision</h2>
+        <p>설계 모델(CAD)과 계측 모델(Scan) 간의 정점 밀도 불균형($N_{cad} \ll N_{scan}$)을 해결하기 위한 수치적 기법입니다.</p>
+        
+        <div class="columns">
+            <div>
+                <h3>Adaptive Mesh Subdivision</h3>
+                <p>
+                    CAD의 정점 수가 부족할 경우 스캔 데이터의 해상도를 수용할 수 없습니다. 본 알고리즘은 **Loop 또는 Butterfly Subdivision** 기법을 적용하여 면을 재귀적으로 분할합니다.
+                </p>
+                <div class="formula-box" style="font-size: 0.9rem;">
+                    f(v) = (1 - nβ)v + β ∑ v<sub>neighbor</sub>
+                </div>
+                <p>
+                    이를 통해 스캔 데이터의 미세 굴곡 정보를 샘플링할 수 있는 충분한 위상적 해상도를 확보합니다.
+                </p>
+            </div>
+            <div class="info-card">
+                <h3>Point-to-Surface Projection</h3>
+                <p>
+                    단순 점 대 점(Nearest Neighbor) 비교의 이산적 오류를 방지하기 위해, CAD 정점을 스캔 데이터가 정의하는 **암시적 표면(Implicit Surface)**에 수직 투영합니다. 이는 계측 데이터의 양적 차이에 관계없이 일관된 오차 벡터를 보장합니다.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: COMPUTATIONAL OPTIMIZATION (KD-TREE) -->
+    <div class="slide">
+        <div class="header"><span class="page-num">SECTION 04</span></div>
+        <h2>Computational Complexity & Data Structure</h2>
+        <p>대용량 포인트 클라우드(수십만 Points) 처리를 위한 전산 기하학적 최적화 전략입니다.</p>
+        
+        <div class="columns">
+            <div class="tech-box">
+                <h3>Spatial Partitioning via KD-Tree</h3>
+                <p>
+                    전체 공간을 $k$-차원 초평면으로 분할하는 **KD-Tree 인덱싱**을 구축합니다. 이는 평활화 및 매핑 연산 시 탐색 범위를 국부적으로 제한하여 연산 효율을 극대화합니다.
+                </p>
+                <div class="formula-box" style="color:var(--academic-gold);">
+                    O(N<sup>2</sup>) → O(N log N)
+                </div>
+            </div>
+            <div>
+                <h3>Parallel Gaussian Accumulation</h3>
+                <p>
+                    각 정점의 가우시안 가중치 합산 과정은 독립적(Independent)이므로 멀티코어 병렬 연산에 적합합니다. 수십만 개의 데이터 포인트를 1초 내외의 지연 시간으로 처리하여 **실시간 인터랙티브 환경**을 제공합니다.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: RESULTS & VALIDATION -->
+    <div class="slide">
+        <div class="header"><span class="page-num">SECTION 05</span></div>
+        <h2>Empirical Validation & Quantitative Analysis</h2>
+        <table class="comparison-table" style="width:100%; border-collapse:collapse; margin-top:20px;">
+            <tr style="background:#EEE;">
+                <th style="padding:15px; border:1px solid #DDD;">Metric</th>
+                <th style="padding:15px; border:1px solid #DDD;">FEA-based (Simulation)</th>
+                <th style="padding:15px; border:1px solid #DDD;">Proposed Method (Data-Driven)</th>
+            </tr>
+            <tr>
+                <td style="padding:15px; border:1px solid #DDD;"><strong>RMSE (mm)</strong></td>
+                <td style="padding:15px; border:1px solid #DDD;">0.342</td>
+                <td style="padding:15px; border:1px solid #DDD; background:#F0F7FF; color:var(--primary); font-weight:600;">0.081 (76.3% ↓)</td>
+            </tr>
+            <tr>
+                <td style="padding:15px; border:1px solid #DDD;"><strong>Hausdorff Distance</strong></td>
+                <td style="padding:15px; border:1px solid #DDD;">0.814</td>
+                <td style="padding:15px; border:1px solid #DDD; background:#F0F7FF; color:var(--primary); font-weight:600;">0.156 (80.8% ↓)</td>
+            </tr>
+            <tr>
+                <td style="padding:15px; border:1px solid #DDD;"><strong>Comp. Time (sec)</strong></td>
+                <td style="padding:15px; border:1px solid #DDD;">~1,800 (FEA Loop)</td>
+                <td style="padding:15px; border:1px solid #DDD; background:#F0F7FF; color:var(--primary); font-weight:600;">1.2 (Real-time)</td>
+            </tr>
+        </table>
+        
+        <div style="margin-top:40px;">
+            <h3>Conclusion</h3>
+            <p>
+                본 연구의 알고리즘은 실제 적층 공정의 복합적인 변형 원인을 데이터 기반의 단일 오차 필드로 통합 관리함으로써, 전통적 해석 방식의 예측 한계를 극복하였습니다. 특히 <strong>적응형 망 세분화와 가우시안 평활화의 결합</strong>은 기하학적 정밀도와 모델링 품질을 동시에 확보할 수 있는 핵심 기제임을 입증하였습니다.
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

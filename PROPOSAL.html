@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로봇 기반 대면적 복합소재 적층제조 역보정 기술 개발</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --h-navy: #002C5F; 
+            --h-purple: #34335C; 
+            --h-gray: #666666;
+            --h-light-gray: #F2F2F2;
+            --accent: #002C5F;
+        }
+        body { 
+            font-family: 'Nanum Gothic', sans-serif; 
+            background-color: #000; 
+            margin: 0; padding: 0; 
+            overflow: hidden; 
+            word-break: keep-all;
+        }
+        
+        .presentation-container { width: 100vw; height: 100vh; position: relative; }
+
+        .slide { 
+            display: none; 
+            width: 100vw; height: 100vh; 
+            background: #FFFFFF; 
+            flex-direction: column; 
+            position: relative;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .slide.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- 표지 디자인 --- */
+        .slide.cover {
+            background: white;
+            justify-content: center;
+            padding: 0 8%;
+        }
+        .cover-overlay {
+            position: absolute;
+            top: 0; right: 0;
+            width: 55%; height: 100%;
+            background: var(--h-navy);
+            clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+            opacity: 0.95;
+            background-image: url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1200');
+            background-blend-mode: multiply;
+            background-size: cover;
+        }
+        .cover-content { position: relative; z-index: 10; width: 45%; }
+        .cover-title { font-size: 3.5rem; font-weight: 800; color: var(--h-navy); line-height: 1.25; margin-bottom: 20px; }
+        .cover-date { font-size: 1.5rem; color: #333; font-weight: 700; margin-top: 40px; }
+
+        /* --- 일반 슬라이드 디자인 --- */
+        .header-bar {
+            background: var(--h-purple);
+            padding: 12px 40px;
+            color: white;
+            font-size: 1.6rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .sub-header {
+            padding: 10px 25px;
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: white;
+            background: #505E70;
+            margin: 10px 40px;
+            border-radius: 50px;
+            width: fit-content;
+            flex-shrink: 0;
+        }
+        .sub-header::before { content: ">>"; margin-right: 10px; color: #9DDFFF; }
+
+        .content-area { 
+            padding: 10px 60px; 
+            flex: 1; 
+            overflow-y: auto;
+        }
+        
+        .bullet-point { font-size: 1.05rem; color: #333; margin-bottom: 8px; position: relative; padding-left: 20px; line-height: 1.6; text-align: justify; }
+        .bullet-point::before { content: "●"; position: absolute; left: 0; color: #C49A6C; font-size: 0.8rem; top: 3px; }
+
+        .footer-logos {
+            height: 60px;
+            border-top: 1px solid #EEE;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: white;
+            flex-shrink: 0;
+        }
+        .logo-hyundai { font-size: 1.4rem; font-weight: 900; font-style: italic; color: var(--h-navy); }
+        .logo-group { display: flex; align-items: center; gap: 20px; font-weight: 800; color: var(--h-navy); font-size: 0.9rem; }
+
+        .formula-card { background: #111; color: #10B981; padding: 15px; border-radius: 8px; margin: 10px 0; font-size: 1.1rem; text-align: center; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 10px; }
+        .tech-box { background: var(--h-light-gray); padding: 20px; border-radius: 10px; border-top: 4px solid var(--h-navy); }
+        .tech-box h3 { color: var(--h-navy); margin-top: 0; font-size: 1.2rem; margin-bottom: 8px; }
+
+        .slide-number { position: fixed; bottom: 75px; right: 40px; font-weight: 700; color: #BBB; z-index: 100; font-size: 0.8rem; }
+        
+        .comparison-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        .comparison-table th { background: #F3F4F6; padding: 10px; text-align: left; border-bottom: 2px solid #DDD; }
+        .comparison-table td { padding: 10px; border-bottom: 1px solid #EEE; line-height: 1.5; }
+        .comparison-table .highlight { background: #F0F7FF; font-weight: 700; color: var(--h-navy); }
+
+        strong { color: var(--h-navy); }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container">
+        
+        <!-- SLIDE 1: COVER -->
+        <div class="slide cover active">
+            <div class="cover-overlay"></div>
+            <div class="cover-content">
+                <div class="cover-title">로봇 기반 대면적<br>복합소재 적층제조<br>역보정 기술 개발</div>
+                <div class="cover-date">2026년 3월 12일</div>
+            </div>
+            <div class="footer-logos" style="position:absolute; bottom:0; left:0; width:100%; box-sizing:border-box;">
+                <div class="logo-hyundai">HYUNDAI</div>
+                <div class="logo-group">
+                    <span>울산과학기술원 (UNIST)</span>
+                    <span style="border-left:1px solid #ddd; padding-left:15px;">CA²M</span>
+                    <span>UCIM Lab</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: 연구 과제의 필요성 -->
+        <div class="slide">
+            <div class="header-bar">연구 과제의 필요성</div>
+            <div class="sub-header">대면적 복합소재 적층제조 기술의 핵심 난제</div>
+            <div class="content-area">
+                <div class="bullet-point"><strong>1. 대면적 구조물의 비선형 누적 변형 문제:</strong> 부품 대형화에 따른 수 mm 단위의 누적 오차 발생 및 잔류 응력(Residual Stress)에 의한 복합 왜곡 초래. 단순 선형 보정의 한계 노출.</div>
+                <div class="bullet-point"><strong>2. 복합소재(Composite)의 이방성 특성:</strong> 섬유 배향(Orientation)에 따른 비등방성 수축 및 열팽창 계수 변화 발생. 기존 균질 물성 기반 해석 모델과 실제 출력물 간 예측 오차 상존.</div>
+                <div class="bullet-point"><strong>3. 6축 로봇 암의 기구학적 오차:</strong> 다관절 로봇의 백래시, 자중 처짐 등으로 인한 설계 경로(TCP)와 실제 적층 경로 간 물리적 괴리 발생. 이론적 해석만으로 보정 불가능한 현장 변수 존재.</div>
+                <div class="tech-box" style="margin-top:15px;">
+                    <p style="margin:0; font-weight:700;">물리 시뮬레이션(Track 1)과 실측 데이터(Track 2)의 병렬 활용을 통해 현대차 대형 부품 제조 공정의 치수 정밀도 신뢰성 확보를 목표로 함.</p>
+                </div>
+            </div>
+            <div class="footer-logos"><div class="logo-hyundai">HYUNDAI</div><div class="logo-group"><span>UNIST</span><span>UCIM</span></div></div>
+        </div>
+
+        <!-- SLIDE 3: 공정 최적화 전략 -->
+        <div class="slide">
+            <div class="header-bar">공정 최적화 전략 : Parallel 2-Track Architecture</div>
+            <div class="sub-header">이론적 예측과 실측 보정의 상호 보완 시스템</div>
+            <div class="content-area">
+                <div class="grid-2">
+                    <div class="tech-box" style="border-top-color: #6B7280;">
+                        <h3 style="color:#6B7280;">Track 01: Physical-Analytical Loop (DIGIMAT-AM)</h3>
+                        <div class="bullet-point"><strong>DIGIMAT-AM 기반 수치 해석:</strong> 멀티스케일 모델링 기법을 적용한 복합소재 섬유 배향 및 비등방성 물성 정의.</div>
+                        <div class="bullet-point"><strong>열이력 기반 변형 예측:</strong> 적층 시 열이력(Thermal History) 계산을 통한 뒤틀림(Warpage) 및 잔류 응력 분포 사전 도출.</div>
+                        <div class="bullet-point"><strong>기술적 한계:</strong> 장비 노후도, 환경 노이즈 및 로봇 기구학 오차 반영의 제한성(White-box 모델의 한계).</div>
+                    </div>
+                    <div class="tech-box">
+                        <h3>Track 02: Data-Driven Calibration Loop</h3>
+                        <div class="bullet-point"><strong>디지털 트윈 기반 실측:</strong> 초도 출력물 3D 스캔을 통한 고밀도 포인트 클라우드 확보 및 실제 물리 왜곡 데이터 동기화.</div>
+                        <div class="bullet-point"><strong>직접 역보정 합성:</strong> 오차 벡터장 추출 및 설계안 역투영(Inverse Mapping)을 통한 시뮬레이션 불확실성 상쇄.</div>
+                        <div class="bullet-point"><strong>핵심 강점:</strong> 실제 공정 결과 데이터를 기반으로 하여 장비/환경 변수 통합 제어 가능.</div>
+                    </div>
+                </div>
+                <div class="bullet-point" style="margin-top:20px; background:#F0F7FF; padding:15px; border-radius:10px; border:1px solid #BFDBFE;">
+                    <strong>[Synergy]</strong> Track 01의 거시 변형 제어와 Track 02의 미세 오차 완벽 상쇄를 통해 <strong>치수 정밀도 신뢰성 95% 이상</strong> 달성 가능.
+                </div>
+            </div>
+            <div class="footer-logos"><div class="logo-hyundai">HYUNDAI</div><div class="logo-group"><span>UNIST</span><span>UCIM</span></div></div>
+        </div>
+
+        <!-- SLIDE 4: 수치 해석 모델 -->
+        <div class="slide">
+            <div class="header-bar">수치 해석 모델 : 공간 오차 벡터장 합성 (IVFS)</div>
+            <div class="sub-header">대면적 최적화 및 계측 노이즈 제어를 위한 수학적 접근</div>
+            <div class="content-area">
+                <div class="grid-2">
+                    <div class="tech-box">
+                        <h3>Phase 1: 전역 정합 (Global Registration)</h3>
+                        <div class="formula-card">\[ \min_{T} \sum_{i} || T(V_{scan,i}) - V_{cad,j} ||^{2} \]</div>
+                        <div class="bullet-point" style="font-size:0.85rem;">ICP 기반 7-DoF 정합을 통한 전체 좌표계 일치 및 스케일 최적화 수행.</div>
+                    </div>
+                    <div class="tech-box">
+                        <h3>Phase 2: 국부 오차 투영 (Local Projection)</h3>
+                        <div class="formula-card">\[ \vec{e}_{i} = (P_{scan,closest} - V_{cad,i}) \cdot \vec{n}_{i} \]</div>
+                        <div class="bullet-point" style="font-size:0.85rem;">암시적 표면 법선 투영을 통한 수직 오차 정밀 산출 및 매핑 정확도 확보.</div>
+                    </div>
+                </div>
+        <div class="tech-box" style="margin-top:15px; border-top: 8px solid var(--primary);">
+            <h3 style="color:#9DDFFF; margin-bottom:5px; background:#111; padding:10px; border-radius:8px;">Phase 3: 가우시안 커널 기반 역벡터장 합성 (IVFS)</h3>
+            <div class="formula-card" style="margin:5px 0;">
+                \[ V_{comp,i} = V_{cad,i} - \alpha \cdot \frac{\sum_{j} K(d_{ij}) \vec{e}_{j}}{\sum_{j} K(d_{ij})} \]
+            </div>
+            <div class="grid-2" style="gap:20px; margin-top:10px;">
+                <div style="background:white; padding:15px; border-radius:10px; border:1px solid #ddd;">
+                    <strong style="color:var(--h-navy); display:block; margin-bottom:8px;">커널 함수 \( K(d_{ij}) \) 수치 모델링 및 의미</strong>
+                    <div style="font-size:1.1rem; margin:10px 0; text-align:center;">
+                        \[ K(d_{ij}) = \exp\left(-\frac{||V_i - V_j||^2}{2\sigma^2}\right) \]
+                    </div>
+                    <div class="bullet-point" style="font-size:0.9rem;"><strong>공간적 가중 보간:</strong> 정점 간 유클리드 거리에 반비례하여 오차 벡터의 영향력을 지수적으로 감쇄함. 이는 국부 변형 특성을 보존함과 동시에 기하학적 연속성(C1 Continuity) 확보를 가능케 함.</div>
+                    <div class="bullet-point" style="font-size:0.9rem;"><strong>계측 노이즈 필터링:</strong> 스캔 과정의 고주파 노이즈를 공간 도메인 평활화로 상쇄함. 물리적으로 유효한 저주파 변형 트렌드만을 보정 엔진에 반영하여 표면 품질을 극대화함.</div>
+                </div>
+                <div style="background:white; padding:15px; border-radius:10px; border:1px solid #ddd;">
+                    <strong style="color:var(--h-navy); display:block; margin-bottom:8px;">알고리즘 최적화 핵심 파라미터</strong>
+                    <div class="bullet-point" style="font-size:0.9rem;"><strong>Smoothing Bandwidth (\(\sigma\)):</strong> 커널의 유효 확산 반경을 정의함. 대면적 부품의 거시적 특성 추출을 위한 최적 임계값 설정이 필수적이며, 매쉬의 위상(Topology) 무결성 및 비자가교차 방지를 보장하는 핵심 인자임.</div>
+                    <div class="bullet-point" style="font-size:0.9rem;"><strong>Compensation Gain (\(\alpha\)):</strong> 오차 벡터의 역보정 강도를 결정함. 복합소재의 이방성 수축률 데이터 및 공정 피드백에 따라 0.0~2.0 사이의 가변 이득을 산출하여 최종 치수 정합성을 극대화함.</div>
+                </div>
+            </div>
+        </div>
+            </div>
+            <div class="footer-logos"><div class="logo-hyundai">HYUNDAI</div><div class="logo-group"><span>UNIST</span><span>UCIM</span></div></div>
+        </div>
+
+        <!-- SLIDE 5: 핵심 기술 -->
+        <div class="slide">
+            <div class="header-bar">핵심 기술 : 대용량 데이터 처리 및 밀도 불균형 해소</div>
+            <div class="sub-header">고해상도 스캔 데이터의 효율적 샘플링 전략</div>
+            <div class="content-area">
+                <div class="bullet-point"><strong>1. 적응형 망 세분화 (Adaptive Mesh Subdivision):</strong> CAD 정점 밀도 부족 문제 해결을 위한 삼각형 면 재귀 분할 수행. 스캔 데이터 수준의 해상도 매칭 및 미세 굴곡 정보 수용 능력 극대화.</div>
+                <div class="bullet-point"><strong>2. KD-Tree 기반 공간 분할 인덱싱:</strong> 탐색 복잡도를 $O(N \log N)$으로 최적화하여 수십만 포인트의 대용량 포인트 클라우드 처리 속도 확보. 450MB급 대용량 데이터 분석 가능.</div>
+                <div class="grid-2" style="margin-top:15px;">
+                    <div class="tech-box">
+                        <h3>Topology-Preserving Smoothing</h3>
+                        <p>매쉬 뒤틀림 방지를 위한 가우시안 윈도우 조절 및 Jacobian Determinant 검증을 통한 위상적 무결성 확보.</p>
+                    </div>
+                    <div class="tech-box">
+                        <h3>Robust Error Filtration</h3>
+                        <p>지그, 서포트 등 비모델 데이터 식별 및 실제 표면 데이터 추출을 위한 강건한 필터링 알고리즘 탑재.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-logos"><div class="logo-hyundai">HYUNDAI</div><div class="logo-group"><span>UNIST</span><span>UCIM</span></div></div>
+        </div>
+
+        <!-- SLIDE 6: 기대 효과 -->
+        <div class="slide">
+            <div class="header-bar">수요기업 비즈니스 및 기술적 기대 효과</div>
+            <div class="sub-header">현대자동차 제조 공정 혁신을 위한 핵심 가치</div>
+            <div class="content-area">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">비교 항목</th>
+                            <th>전통적 시뮬레이션 의존 방식</th>
+                            <th class="highlight">AI-REVERSE 하이브리드 방식</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>정밀도 신뢰성</strong></td>
+                            <td>예측 오차 존재 (80% 수준)</td>
+                            <td class="highlight">실물 피드백 기반 95% 이상 달성</td>
+                        </tr>
+                        <tr>
+                            <td><strong>개발 리드타임</strong></td>
+                            <td>반복 시출력 및 해석 튜닝 소요</td>
+                            <td class="highlight">시출력 70% 감소 및 즉각적 보정</td>
+                        </tr>
+                        <tr>
+                            <td><strong>전문인력 의존도</strong></td>
+                            <td>고도의 해석 전문가 필수</td>
+                            <td class="highlight">알고리즘 기반 자동화 보정 구현</td>
+                        </tr>
+                        <tr>
+                            <td><strong>유연 생산성</strong></td>
+                            <td>공정 변경 시 해석 모델 재설계</td>
+                            <td class="highlight">추가 스캔 1회로 새로운 환경 즉시 대응</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="bullet-point" style="margin-top:20px;"><strong>경제적 성과:</strong> 대형 부품 시료 제작 비용 연간 수억 원 절감 및 개발 리드타임 60% 이상 단축 기대됨.</div>
+                <div class="bullet-point"><strong>기술적 도약:</strong> 로봇 기반 적층 공정 디지털 트윈 완성 및 현대차 지능화 생산 시스템 엔진으로 활용 가능함.</div>
+                <div style="margin-top:30px; text-align:center;">
+                    <h3 style="font-size: 1.8rem; color: var(--h-navy); margin-bottom: 5px;">"차세대 모빌리티 생산 혁신을 위한 최적의 기술 솔루션임."</h3>
+                    <p style="text-align:center; font-weight:800; font-size:1.1rem; color:var(--h-gray);">AI-REVERSE | R&D SOLUTION FOR HYUNDAI MOTOR GROUP</p>
+                </div>
+            </div>
+            <div class="footer-logos"><div class="logo-hyundai">HYUNDAI</div><div class="logo-group"><span>UNIST</span><span>UCIM</span></div></div>
+        </div>
+
+    </div>
+
+    <div class="slide-number" id="slideNumber">1 / 6</div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slideNumber = document.getElementById('slideNumber');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+            slideNumber.innerText = `${currentSlide + 1} / ${slides.length}`;
+            if (window.MathJax) { MathJax.typesetPromise(); }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === 'PageDown') {
+                if (currentSlide < slides.length - 1) { currentSlide++; updateSlide(); }
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                if (currentSlide > 0) { currentSlide--; updateSlide(); }
+            }
+        });
+        updateSlide();
+    </script>
+</body>
+</html>

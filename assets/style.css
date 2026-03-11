@@ -1,0 +1,142 @@
+/* Professional SaaS Light Theme */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --bg-main: #F9FAFB;
+    --bg-card: #FFFFFF;
+    --bg-sidebar: #FFFFFF;
+    --accent: #0052FF; /* Sapphire Blue */
+    --accent-hover: #0041CC;
+    --text-main: #111827;
+    --text-dim: #6B7280;
+    --border: #E5E7EB;
+}
+
+/* Global Styles */
+.stApp {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+}
+
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    color: var(--text-main) !important;
+}
+
+h1 {
+    font-size: 1.75rem !important;
+    margin-bottom: 1.5rem !important;
+    border-left: 5px solid var(--accent);
+    padding-left: 15px;
+}
+
+/* Sidebar Styling */
+[data-testid="stSidebar"] {
+    background-color: var(--bg-sidebar) !important;
+    border-right: 1px solid var(--border) !important;
+}
+
+[data-testid="stSidebar"] section {
+    padding-top: 2rem;
+}
+
+/* Cards & Containers */
+[data-testid="stMetric"], .stExpander, .stTabs [data-baseweb="tab-panel"], div[data-testid="stVerticalBlock"] > div.stElementContainer:has(div.stAlert) {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Metrics */
+[data-testid="stMetricValue"] {
+    font-family: 'JetBrains Mono', monospace !important;
+    color: var(--accent) !important;
+    font-size: 1.75rem !important;
+}
+
+[data-testid="stMetricLabel"] {
+    color: var(--text-dim) !important;
+    text-transform: uppercase;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    background-color: #F3F4F6;
+    padding: 4px;
+    border-radius: 8px;
+    gap: 4px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background-color: transparent;
+    color: var(--text-dim);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 24px;
+    font-weight: 600;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: white !important;
+    color: var(--accent) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Buttons */
+.stButton > button {
+    background-color: var(--accent) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    padding: 0.6rem 1rem !important;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.stButton > button:hover {
+    background-color: var(--accent-hover) !important;
+    box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2);
+}
+
+/* File Uploader */
+[data-testid="stFileUploader"] {
+    background-color: var(--bg-main);
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+/* Plotly Chart Background */
+.js-plotly-plot {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: white;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-dim);
+}
